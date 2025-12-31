@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>篮球比赛计时计分系统 - Control Panel</title>
+    <style>
+        /* 导入 Inter 字体作为基础，但主要使用 Monospace 模拟数码管效果 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=D-DIN:wght@700&display=swap');
+
+        :root {
+            --color-bg: #000;
+            --color-primary: #00FF00; /* Neon Green */
+            --color-secondary: #FF4500; /* Neon Orange/Red for emphasis */
+            --color-accent: #FFFF00; /* Neon Yellow for emphasis */
+            --color-text: #00FF00;
+            --color-border: #004400;
+            --digital-font: 'D-DIN', 'Inter', monospace; /* 模拟数码管的字体 */
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.3); /* 轻微的绿色光晕 */
+        }
+
+        /* ---------------------------------- 全局布局 ---------------------------------- */
+
+        .header {
+            width: 90%;
+            max-width: 1600px; /* 适配 1920 宽度 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            box-sizing: border-box;
+            border-bottom: 3px solid var(--color-border);
+            font-size: 1.4rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            color: var(--color-accent);
+            text-shadow: 0 0 15px var(--color-accent);
+            flex-grow: 1;
+            font-family: var(--digital-font);
+        }
+
+        .clock {
+            white-space: nowrap;
+            font-size: 1rem;
+            color: var(--color-secondary);
+            font-family: var(--digital-font);
+        }
+
+        /* 切换按钮 (在 Admin 页面移除，但保留样式以防万一) */
+        #view-toggle, #lang-toggle {
+            background: var(--color-bg);
+            border: 2px solid var(--color-primary);
+            color: var(--color-primary);
+            padding: 8px 15px;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-left: 15px;
+            transition: all 0.3s;
+            border-radius: 5px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        #view-toggle:hover, #lang-toggle:hover, .btn:hover {
+            box-shadow: 0 0 10px var(--color-primary);
+            background-color: #001a00;
+        }
+
+        /* ---------------------------------- 计分板 (Frontend) ---------------------------------- */
+
+        /* 在 Admin 页面隐藏计分板 */
+        #scoreboard {
+            display: none; 
+        }
+
+        .team-panel {
+            padding: 20px;
+            border-right: 3px solid var(--color-border);
+            border-left: 3px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ... (省略 Scoreboard 详细样式，因为它被隐藏) ... */
+
+        /* ---------------------------------- 中央计分区 (Admin 页面也需要这部分，因为它是JS的占位符) ---------------------------------- */
+        .center-panel {
+            /* 样式保留，但元素隐藏 */
+            display: none; 
+        }
+
+        /* ---------------------------------- 后台管理 (Control Panel) ---------------------------------- */
+
+        #control-panel {
+            width: 90%;
+            max-width: 1200px; /* 控制台可以窄一些 */
+            margin: 30px auto;
+            padding: 30px;
+            border: 2px solid var(--color-secondary);
+            background-color: #0d0d0d;
+            border-radius: 8px;
+            /* Admin 页面始终显示 */
+            display: block !important; 
+        }
+
+        .panel-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid var(--color-border);
+            border-radius: 5px;
+            box-shadow: 0 0 8px rgba(255, 69, 0, 0.4);
+        }
+
+        .panel-section h2 {
+            color: var(--color-accent);
+            border-bottom: 2px solid var(--color-accent);
+            padding-bottom: 8px;
+            margin-top: 0;
+            font-size: 1.8rem;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .control-group label {
+            font-size: 1rem;
+        }
+
+        input[type="text"], input[type="number"] {
+            background-color: #1a1a1a;
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            border-radius: 3px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: bold;
+        }
+        
+        .player-settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        /* 响应式调整 (保持手机可用性) */
+        @media (max-width: 768px) {
+            .header {
+                width: 100%;
+                padding: 10px;
+            }
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            #control-panel {
+                width: 98%;
+                padding: 15px;
+            }
+            .player-settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span id="referees-placeholder"></span>
+        <h1 id="app-title"></h1>
+        <div class="header-controls">
+            <button id="lang-toggle" class="btn primary"></button>
+            <div id="real-time-clock" class="clock"></div>
+        </div>
+    </div>
+
+    <div id="app-modal" class="modal">
+        <div class="modal-content">
+            <p id="modal-message"></p>
+            <div id="modal-actions">
+                </div>
+        </div>
+    </div>
+
+    <div id="scoreboard" style="display: none;">
+        </div>
+
+
+    <div id="control-panel" style="display: block;">
+
+        <div class="panel-section">
+            <h2 id="meta-title">比赛元数据 (实时保存)</h2>
+            <div class="control-grid">
+                <div class="control-group">
+                    <label for="game-name-input" id="label-game-name"></label>
+                    <input type="text" id="game-name-input" oninput="saveMetadata('gameName', this.value)">
+                </div>
+                <div class="control-group">
+                    <label for="team-a-name-input" id="label-team-a-name"></label>
+                    <input type="text" id="team-a-name-input" oninput="saveMetadata('teamA', this.value)">
+                </div>
+                <div class="control-group">
+                    <label for="team-b-name-input" id="label-team-b-name"></label>
+                    <input type="text" id="team-b-name-input" oninput="saveMetadata('teamB', this.value)">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <h2 id="personnel-title">管理人员信息 (实时保存)</h2>
+            <div class="control-grid">
+                <div class="control-group">
+                    <label for="referee-main-input" id="label-referee-main"></label>
+                    <input type="text" id="referee-main-input" oninput="saveMetadata('refereeMain', this.value)">
+                </div>
+                <div class="control-group">
+                    <label for="referee-vice-input" id="label-referee-vice"></label>
+                    <input type="text" id="referee-vice-input" oninput="saveMetadata('refereeVice', this.value)">
+                </div>
+                <div class="control-group">
+                    <label for="coach-a-input" id="label-coach-a"></label>
+                    <input type="text" id="coach-a-input" oninput="saveMetadata('coachA', this.value)">
+                </div>
+                <div class="control-group">
+                    <label for="coach-b-input" id="label-coach-b"></label>
+                    <input type="text" id="coach-b-input" oninput="saveMetadata('coachB', this.value)">
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel-section">
+            <h2 id="settings-title">比赛参数设置 (需点击应用)</h2>
+            <div class="control-grid">
+                <div class="control-group">
+                    <label for="period-duration-input" id="label-period-duration"></label>
+                    <input type="number" id="period-duration-input" value="300" min="1" max="3600">
+                </div>
+                <div class="control-group">
+                    <label for="total-periods-input" id="label-total-periods"></label>
+                    <input type="number" id="total-periods-input" value="4" min="1" max="10">
+                </div>
+                <div class="control-group">
+                    <label for="shot-clock-input" id="label-shot-clock"></label>
+                    <input type="number" id="shot-clock-input" value="24" min="1" max="60">
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <button id="apply-settings-btn" class="btn primary" style="width: 100%;"></button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <h2 id="team-player-title">球员信息 (实时保存)</h2>
+            <div class="player-settings-grid">
+                <div class="player-list">
+                    <h3 id="team-a-label"></h3>
+                    <div id="team-a-inputs"></div>
+                </div>
+                <div class="player-list">
+                    <h3 id="team-b-label"></h3>
+                    <div id="team-b-inputs"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <h2 id="control-title">比赛控制</h2>
+
+            <h3 id="timer-control-title" style="color: var(--color-primary);"></h3>
+            <div class="control-grid" style="margin-bottom: 20px;">
+                <button id="timer-start-btn" class="btn primary"></button>
+                <button id="timer-reset-btn" class="btn"></button>
+                <button id="shot-clock-reset-btn" class="btn"></button>
+                <button id="next-period-btn" class="btn primary"></button>
+            </div>
+
+            <h3 id="score-control-title" style="color: var(--color-primary);"></h3>
+            <div class="control-grid">
+                <div style="border: 1px solid var(--color-border); padding: 10px;">
+                    <h4 id="control-team-a" style="color: var(--color-primary); margin-top: 0;"></h4>
+                    <div class="control-grid" style="gap: 5px;">
+                        <button class="btn primary" onclick="updateScore('a', 1)">+1 分</button>
+                        <button class="btn primary" onclick="updateScore('a', 2)">+2 分</button>
+                        <button class="btn primary" onclick="updateScore('a', 3)">+3 分</button>
+                        <button class="btn" onclick="updateFoul('a', 1)">+1 犯规</button>
+                        <button class="btn" onclick="updateFoul('a', -1)">-1 犯规</button>
+                        <button class="btn" onclick="updateTimeout('a', 1)">+1 暂停</button>
+                        <button class="btn" onclick="updateTimeout('a', -1)">-1 暂停</button>
+                    </div>
+                </div>
+                <div style="border: 1px solid var(--color-border); padding: 10px;">
+                    <h4 id="control-team-b" style="color: var(--color-secondary); margin-top: 0;"></h4>
+                    <div class="control-grid" style="gap: 5px;">
+                        <button class="btn primary" onclick="updateScore('b', 1)">+1 分</button>
+                        <button class="btn primary" onclick="updateScore('b', 2)">+2 分</button>
+                        <button class="btn primary" onclick="updateScore('b', 3)">+3 分</button>
+                        <button class="btn" onclick="updateFoul('b', 1)">+1 犯规</button>
+                        <button class="btn" onclick="updateFoul('b', -1)">-1 犯规</button>
+                        <button class="btn" onclick="updateTimeout('b', 1)">+1 暂停</button>
+                        <button class="btn" onclick="updateTimeout('b', -1)">-1 暂停</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <h2 id="log-title"></h2>
+            <textarea id="score-log-output" readonly></textarea>
+            <div class="control-grid" style="margin-top: 15px;">
+                <button id="export-log-btn" class="btn primary"></button>
+                <button id="clear-log-btn" class="btn danger"></button>
+            </div>
+        </div>
+
+        <div class="panel-section" style="text-align: center; border-color: var(--color-secondary);">
+            <button id="reset-all-btn" class="btn danger" style="width: 100%;"></button>
+        </div>
+    </div>
+
+    <div id="team-a-name-display" style="display: none;"></div>
+    <div id="team-b-name-display" style="display: none;"></div>
+    <div id="team-vs" style="display: none;"></div>
+    <div id="ref-main-display" style="display: none;"></div>
+    <div id="ref-vice-display" style="display: none;"></div>
+    <div id="coach-a-display" style="display: none;"></div>
+    <div id="coach-b-display" style="display: none;"></div>
+    <div id="period-display" style="display: none;"></div>
+    <div id="score-a" style="display: none;">0</div>
+    <div id="score-b" style="display: none;">0</div>
+    <div id="main-timer" style="display: none;">00:00</div>
+    <div id="shot-clock" style="display: none;">24</div>
+    <div id="fouls-a-value" style="display: none;">0</div>
+    <div id="fouls-b-value" style="display: none;">0</div>
+    <div id="fouls-label" style="display: none;"></div>
+    <div id="timeouts-a-value" style="display: none;">0</div>
+    <div id="timeouts-b-value" style="display: none;">0</div>
+    <div id="timeouts-label" style="display: none;"></div>
+    <div id="players-a-list" style="display: none;"></div>
+    <div id="players-b-list" style="display: none;"></div>
+    <script>
+        // ---------------------------------- 全局状态与配置 ----------------------------------
+        let gameState = {
+            // 比赛设置 (实时保存)
+            gameName: "2016篮球比赛计时计分系统",
+            teamA: "NBA",
+            teamB: "CBA",
+            refereeMain: "王伟",
+            refereeVice: "李强",
+            coachA: "张指导",
+            coachB: "刘教练",
+            
+            // 比赛参数 (需点击应用)
+            periodDuration: 300, // 5 minutes in seconds
+            totalPeriods: 4,
+            shotClockInitial: 24,
+
+            // 比赛实时状态
+            currentPeriod: 1,
+            timer: 300,
+            shotClock: 24,
+            isTimerRunning: false,
+            timerInterval: null,
+            shotClockInterval: null,
+
+            // 比分及犯规
+            scoreA: 0,
+            scoreB: 0,
+            foulsA: 0,
+            foulsB: 0,
+            timeoutsA: 0,
+            timeoutsB: 0,
+
+            // 球员得分 (简化版，仅显示名字和总得分)
+            playersA: Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `队员 ${i + 1}`, score: 0, fouls: 0 })),
+            playersB: Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `队员 ${i + 1}`, score: 0, fouls: 0 })),
+            
+            // 记录
+            periodScores: [],
+        };
+
+        let currentLang = 'zh';
+
+        // ---------------------------------- 翻译数据 ----------------------------------
+        const translations = {
+            'zh': {
+                'app-title': '篮球比赛计时计分系统',
+                'view-toggle-score': '切换到控制面板',
+                'view-toggle-control': '切换到计分板',
+                'modal-ok': '确定',
+                'modal-cancel': '取消',
+                'meta-title': '比赛元数据 (实时保存)',
+                'personnel-title': '管理人员信息 (实时保存)',
+                'settings-title': '比赛参数设置 (需点击应用)',
+                'label-game-name': '比赛名称',
+                'label-team-a-name': '队伍 A 名称',
+                'label-team-b-name': '队伍 B 名称',
+                'label-referee-main': '主裁判',
+                'label-referee-vice': '副裁判',
+                'label-coach-a': '队伍 A 主教练',
+                'label-coach-b': '队伍 B 主教练',
+                'label-period-duration': '每节时长 (秒)',
+                'label-total-periods': '总结数',
+                'label-shot-clock': '进攻时钟 (秒)',
+                'apply-settings-btn': '应用比赛参数',
+                'team-player-title': '球员信息 (实时保存)',
+                'team-a-label': '队伍 A 球员',
+                'team-b-label': '队伍 B 球员',
+                'player-placeholder': '球员名称',
+                'control-title': '比赛控制',
+                'timer-control-title': '倒计时管理',
+                'score-control-title': '比分和其他控制',
+                'timer-start-btn-start': '开始计时',
+                'timer-start-btn-pause': '暂停计时',
+                'timer-reset-btn': '重置计时',
+                'shot-clock-reset-btn': '重置进攻时钟',
+                'next-period-btn': '下一节比赛',
+                'control-team-a': '队伍 A',
+                'control-team-b': '队伍 B',
+                'log-title': '得分记录与导出',
+                'export-log-btn': '导出得分记录 (.txt)',
+                'clear-log-btn': '清除记录',
+                'reset-all-btn': '一键重置所有比赛信息',
+                'ref-main-prefix': '主裁判:',
+                'ref-vice-prefix': '副裁判:',
+                'coach-a-prefix': '主教练:',
+                'coach-b-prefix': '主教练:',
+                'period-label': '第',
+                'period-unit': '节',
+                'timeout-label': '暂停',
+                'foul-label': '犯规',
+                'msg-game-start': '比赛已开始！',
+                'msg-game-paused': '比赛已暂停！',
+                'msg-period-end': '第 {0} 节比赛结束，比分 {1} - {2}',
+                'msg-game-end': '比赛结束！最终比分 {0} - {1}',
+                'msg-reset-confirm': '您确定要重置所有比赛信息吗？此操作不可撤销。',
+                'msg-settings-applied': '比赛参数已应用。',
+                'msg-foul-max': '队伍犯规已达上限 (5次)。',
+                'msg-timeout-max': '暂停次数不能低于 0。',
+                'msg-log-cleared': '得分记录已清除。',
+            },
+            'en': {
+                'app-title': 'Basketball Scoreboard System',
+                'view-toggle-score': 'Switch to Control Panel',
+                'view-toggle-control': 'Switch to Scoreboard',
+                'modal-ok': 'OK',
+                'modal-cancel': 'Cancel',
+                'meta-title': 'Game Metadata (Real-time Saved)',
+                'personnel-title': 'Personnel Info (Real-time Saved)',
+                'settings-title': 'Game Parameters (Requires Apply)',
+                'label-game-name': 'Game Name',
+                'label-team-a-name': 'Team A Name',
+                'label-team-b-name': 'Team B Name',
+                'label-referee-main': 'Main Referee',
+                'label-referee-vice': 'Vice Referee',
+                'label-coach-a': 'Team A Head Coach',
+                'label-coach-b': 'Team B Head Coach',
+                'label-period-duration': 'Period Duration (Seconds)',
+                'label-total-periods': 'Total Periods',
+                'label-shot-clock': 'Shot Clock (Seconds)',
+                'apply-settings-btn': 'Apply Game Parameters',
+                'team-player-title': 'Player Info (Real-time Saved)',
+                'team-a-label': 'Team A Players',
+                'team-b-label': 'Team B Players',
+                'player-placeholder': 'Player Name',
+                'control-title': 'Game Control',
+                'timer-control-title': 'Timer Management',
+                'score-control-title': 'Score and Control',
+                'timer-start-btn-start': 'Start Timer',
+                'timer-start-btn-pause': 'Pause Timer',
+                'timer-reset-btn': 'Reset Timer',
+                'shot-clock-reset-btn': 'Reset Shot Clock',
+                'next-period-btn': 'Next Period',
+                'control-team-a': 'Team A',
+                'control-team-b': 'Team B',
+                'log-title': 'Score Log and Export',
+                'export-log-btn': 'Export Score Log (.txt)',
+                'clear-log-btn': 'Clear Log',
+                'reset-all-btn': 'Reset All Game Info',
+                'ref-main-prefix': 'Main Ref:',
+                'ref-vice-prefix': 'Vice Ref:',
+                'coach-a-prefix': 'Head Coach:',
+                'coach-b-prefix': 'Head Coach:',
+                'period-label': 'Period',
+                'period-unit': '',
+                'timeout-label': 'Timeout',
+                'foul-label': 'Foul',
+                'msg-game-start': 'Game Started!',
+                'msg-game-paused': 'Game Paused!',
+                'msg-period-end': 'End of Period {0}, Score {1} - {2}',
+                'msg-game-end': 'Game Over! Final Score {0} - {1}',
+                'msg-reset-confirm': 'Are you sure you want to reset all game data? This cannot be undone.',
+                'msg-settings-applied': 'Game parameters applied.',
+                'msg-foul-max': 'Team foul limit (5) reached.',
+                'msg-timeout-max': 'Timeout count cannot go below 0.',
+                'msg-log-cleared': 'Score log cleared.',
+            }
+        };
+
+        /**
+         * 替换翻译字符串中的占位符 {0}, {1}...
+         */
+        function getTranslation(key, ...args) {
+            let text = translations[currentLang][key] || key;
+            args.forEach((arg, index) => {
+                text = text.replace(new RegExp(`\\{${index}\\}`, 'g'), arg);
+            });
+            return text;
+        }
+
+        // ---------------------------------- 模态框 (替代 alert/confirm) ----------------------------------
+
+        /**
+         * 显示自定义消息模态框 (取代 alert)
+         */
+        function showModal(messageKey, ...args) {
+            const modal = document.getElementById('app-modal');
+            document.getElementById('modal-message').innerHTML = getTranslation(messageKey, ...args);
+            
+            const actions = document.getElementById('modal-actions');
+            actions.innerHTML = `<button class="btn primary" onclick="document.getElementById('app-modal').style.display='none'">${getTranslation('modal-ok')}</button>`;
+            
+            modal.style.display = 'block';
+        }
+
+        /**
+         * 显示确认模态框 (取代 confirm)
+         */
+        function showConfirmModal(messageKey, onConfirm) {
+            const modal = document.getElementById('app-modal');
+            document.getElementById('modal-message').innerHTML = getTranslation(messageKey);
+            
+            const actions = document.getElementById('modal-actions');
+            actions.innerHTML = `
+                <button class="btn danger" id="modal-confirm-btn">${getTranslation('modal-ok')}</button>
+                <button class="btn" onclick="document.getElementById('app-modal').style.display='none'">${getTranslation('modal-cancel')}</button>
+            `;
+            
+            document.getElementById('modal-confirm-btn').onclick = () => {
+                onConfirm();
+                document.getElementById('app-modal').style.display = 'none';
+            };
+            
+            modal.style.display = 'block';
+        }
+
+        // ---------------------------------- 初始化与视图渲染 ----------------------------------
+
+        /**
+         * 切换语言
+         */
+        function toggleLanguage() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            document.documentElement.lang = currentLang;
+            renderUI();
+        }
+        
+        /**
+         * 渲染所有需要翻译和动态显示的内容
+         */
+        function renderUI() {
+            // 1. 顶部栏
+            document.getElementById('app-title').textContent = getTranslation('app-title');
+            document.getElementById('lang-toggle').textContent = currentLang === 'zh' ? 'EN / 中文' : 'ZH / English';
+            // 移除 view-toggle 相关的逻辑
+
+            // 2. 计分板 (Scoreboard) - 实时元数据 (Admin 页面不显示，但仍需更新 gameState 确保 saveGameState 正确)
+            
+            // 3. 计分板 (Scoreboard) - 比赛状态 (Admin 页面不显示，但仍需更新 gameState 确保 saveGameState 正确)
+            
+            // 4. 计分板 - 球员列表 (Admin 页面不显示，但仍需更新 gameState 确保 saveGameState 正确)
+            renderPlayerList('a');
+            renderPlayerList('b');
+            
+            // 5. 后台控制 (Control Panel) - 静态文本和输入框内容
+            
+            // 实时保存元数据
+            document.getElementById('meta-title').textContent = getTranslation('meta-title');
+            document.getElementById('label-game-name').textContent = getTranslation('label-game-name');
+            document.getElementById('game-name-input').value = gameState.gameName;
+            document.getElementById('label-team-a-name').textContent = getTranslation('label-team-a-name');
+            document.getElementById('team-a-name-input').value = gameState.teamA;
+            document.getElementById('label-team-b-name').textContent = getTranslation('label-team-b-name');
+            document.getElementById('team-b-name-input').value = gameState.teamB;
+
+            // 人员信息
+            document.getElementById('personnel-title').textContent = getTranslation('personnel-title');
+            document.getElementById('label-referee-main').textContent = getTranslation('label-referee-main');
+            document.getElementById('referee-main-input').value = gameState.refereeMain;
+            document.getElementById('label-referee-vice').textContent = getTranslation('label-referee-vice');
+            document.getElementById('referee-vice-input').value = gameState.refereeVice;
+            document.getElementById('label-coach-a').textContent = getTranslation('label-coach-a');
+            document.getElementById('coach-a-input').value = gameState.coachA;
+            document.getElementById('label-coach-b').textContent = getTranslation('label-coach-b');
+            document.getElementById('coach-b-input').value = gameState.coachB;
+
+            // 比赛参数
+            document.getElementById('settings-title').textContent = getTranslation('settings-title');
+            document.getElementById('label-period-duration').textContent = getTranslation('label-period-duration');
+            document.getElementById('label-total-periods').textContent = getTranslation('label-total-periods');
+            document.getElementById('label-shot-clock').textContent = getTranslation('label-shot-clock');
+            document.getElementById('apply-settings-btn').textContent = getTranslation('apply-settings-btn');
+            document.getElementById('period-duration-input').value = gameState.periodDuration;
+            document.getElementById('total-periods-input').value = gameState.totalPeriods;
+            document.getElementById('shot-clock-input').value = gameState.shotClockInitial;
+
+            // 球员信息
+            document.getElementById('team-player-title').textContent = getTranslation('team-player-title');
+            document.getElementById('team-a-label').textContent = `${getTranslation('team-a-label')} (${gameState.teamA})`;
+            document.getElementById('team-b-label').textContent = `${getTranslation('team-b-label')} (${gameState.teamB})`;
+
+            // 比赛控制
+            document.getElementById('control-title').textContent = getTranslation('control-title');
+            document.getElementById('timer-control-title').textContent = getTranslation('timer-control-title');
+            document.getElementById('score-control-title').textContent = getTranslation('score-control-title');
+            document.getElementById('timer-reset-btn').textContent = getTranslation('timer-reset-btn');
+            document.getElementById('shot-clock-reset-btn').textContent = getTranslation('shot-clock-reset-btn');
+            document.getElementById('next-period-btn').textContent = getTranslation('next-period-btn');
+            document.getElementById('log-title').textContent = getTranslation('log-title');
+            document.getElementById('export-log-btn').textContent = getTranslation('export-log-btn');
+            document.getElementById('clear-log-btn').textContent = getTranslation('clear-log-btn');
+            document.getElementById('reset-all-btn').textContent = getTranslation('reset-all-btn');
+
+            document.getElementById('control-team-a').textContent = `${getTranslation('control-team-a')} (${gameState.teamA})`;
+            document.getElementById('control-team-b').textContent = `${getTranslation('control-team-b')} (${gameState.teamB})`;
+            
+            // 6. 计时按钮
+            updateTimerButton();
+            
+            // 7. 记录
+            renderScoreLog();
+        }
+
+        /**
+         * 渲染球员列表 (Control Panel Only)
+         */
+        function renderPlayerList(team) {
+            // Admin 页面只渲染输入框
+            const inputsEl = document.getElementById(`team-${team}-inputs`);
+            const players = team === 'a' ? gameState.playersA : gameState.playersB;
+            
+            inputsEl.innerHTML = '';
+
+            players.forEach((player) => {
+                // Control Panel Inputs
+                const inputRow = document.createElement('div');
+                inputRow.className = 'player-input-row';
+                inputRow.innerHTML = `
+                    <input type="text" id="player-${team}-${player.id}-name" 
+                           value="${player.name}" 
+                           placeholder="${getTranslation('player-placeholder')}"
+                           oninput="savePlayerName('${team}', ${player.id}, this.value)">
+                    <button class="btn" style="width: 50px; flex-shrink: 0;" onclick="showPlayerScoreModal('${team}', ${player.id})">分</button>
+                `;
+                inputsEl.appendChild(inputRow);
+            });
+        }
+        
+        /**
+         * 实时时钟
+         */
+        function updateRealTimeClock() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('real-time-clock').textContent = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+        
+        // ---------------------------------- 比赛逻辑 ----------------------------------
+
+        /**
+         * 更新主计时器的按钮文本
+         */
+        function updateTimerButton() {
+            const btn = document.getElementById('timer-start-btn');
+            if (gameState.isTimerRunning) {
+                btn.textContent = getTranslation('timer-start-btn-pause');
+                btn.classList.remove('primary');
+                btn.classList.add('danger');
+            } else {
+                btn.textContent = getTranslation('timer-start-btn-start');
+                btn.classList.remove('danger');
+                btn.classList.add('primary');
+            }
+        }
+
+        /**
+         * 格式化时间为 MM:SS
+         */
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        /**
+         * 主计时器和进攻时钟的核心逻辑
+         */
+        function startTimer() {
+            if (gameState.isTimerRunning) {
+                clearInterval(gameState.timerInterval);
+                clearInterval(gameState.shotClockInterval);
+                gameState.isTimerRunning = false;
+                showModal('msg-game-paused');
+                saveGameState(); // 状态改变，保存
+            } else {
+                if (gameState.timer <= 0 && gameState.currentPeriod >= gameState.totalPeriods) {
+                    showModal('msg-game-end', gameState.scoreA, gameState.scoreB);
+                    return;
+                }
+                
+                gameState.isTimerRunning = true;
+                showModal('msg-game-start');
+                
+                // 主计时器
+                gameState.timerInterval = setInterval(() => {
+                    if (gameState.timer > 0) {
+                        gameState.timer--;
+                        // Admin 页面只需要更新 gameState，Scoreboard 页面会自动同步
+                        
+                        // **重要：在计时器中写入 localStorage 以同步给 Scoreboard**
+                        saveGameState(); 
+
+                    } else {
+                        // 计时结束，自动记录比分并暂停
+                        clearInterval(gameState.timerInterval);
+                        clearInterval(gameState.shotClockInterval);
+                        gameState.isTimerRunning = false;
+                        
+                        recordPeriodScore();
+                        saveGameState(); // 状态改变，保存
+
+                        if (gameState.currentPeriod < gameState.totalPeriods) {
+                             showModal('msg-period-end', gameState.currentPeriod, gameState.scoreA, gameState.scoreB);
+                        } else {
+                             showModal('msg-game-end', gameState.scoreA, gameState.scoreB);
+                        }
+                    }
+                }, 1000);
+
+                // 进攻时钟
+                gameState.shotClockInterval = setInterval(() => {
+                    if (gameState.shotClock > 0 && gameState.timer > 0) {
+                        gameState.shotClock--;
+                    } else if (gameState.timer > 0) {
+                        // 进攻时间到，自动重置
+                        resetShotClock();
+                    }
+                    // **重要：在进攻时钟中写入 localStorage 以同步给 Scoreboard**
+                    saveGameState(); 
+
+                }, 1000);
+            }
+            updateTimerButton();
+        }
+
+        /**
+         * 重置主计时器
+         */
+        function resetTimer() {
+            clearInterval(gameState.timerInterval);
+            clearInterval(gameState.shotClockInterval);
+            gameState.isTimerRunning = false;
+            gameState.timer = gameState.periodDuration;
+            resetShotClock(); // 重置进攻时钟
+            updateTimerButton();
+            saveGameState(); // 状态改变，保存
+        }
+        
+        /**
+         * 重置进攻时钟
+         */
+        function resetShotClock() {
+            gameState.shotClock = gameState.shotClockInitial;
+            saveGameState(); // 状态改变，保存
+        }
+
+        /**
+         * 下一节比赛
+         */
+        function nextPeriod() {
+            if (gameState.timer > 0) {
+                // 如果当前节未结束，先强制结束本节并记录比分
+                gameState.timer = 0;
+                clearInterval(gameState.timerInterval);
+                clearInterval(gameState.shotClockInterval);
+                gameState.isTimerRunning = false;
+                recordPeriodScore();
+            }
+
+            if (gameState.currentPeriod < gameState.totalPeriods) {
+                gameState.currentPeriod++;
+                resetTimer(); // 重置计时器到设置时长
+                renderUI();
+                saveGameState(); // 状态改变，保存
+            } else {
+                showModal('msg-game-end', gameState.scoreA, gameState.scoreB);
+            }
+        }
+
+        /**
+         * 更新比分
+         */
+        function updateScore(team, points) {
+            if (team === 'a') {
+                gameState.scoreA = Math.max(0, gameState.scoreA + points);
+            } else {
+                gameState.scoreB = Math.max(0, gameState.scoreB + points);
+            }
+            resetShotClock(); // 每次得分后重置进攻时钟
+            saveGameState(); // 状态改变，保存
+        }
+
+        /**
+         * 更新犯规数
+         */
+        function updateFoul(team, delta) {
+            if (team === 'a') {
+                gameState.foulsA = Math.max(0, gameState.foulsA + delta);
+                if (gameState.foulsA > 5) {
+                    showModal('msg-foul-max');
+                }
+            } else {
+                gameState.foulsB = Math.max(0, gameState.foulsB + delta);
+                if (gameState.foulsB > 5) {
+                    showModal('msg-foul-max');
+                }
+            }
+            saveGameState(); // 状态改变，保存
+        }
+        
+        /**
+         * 更新暂停数
+         */
+        function updateTimeout(team, delta) {
+            if (team === 'a') {
+                gameState.timeoutsA = Math.max(0, gameState.timeoutsA + delta);
+                if (gameState.timeoutsA < 0) {
+                     showModal('msg-timeout-max');
+                     gameState.timeoutsA = 0;
+                }
+            } else {
+                gameState.timeoutsB = Math.max(0, gameState.timeoutsB + delta);
+                if (gameState.timeoutsB < 0) {
+                     showModal('msg-timeout-max');
+                     gameState.timeoutsB = 0;
+                }
+            }
+            saveGameState(); // 状态改变，保存
+        }
+        
+        /**
+         * 记录当前节比分
+         */
+        function recordPeriodScore() {
+            const currentScore = {
+                period: gameState.currentPeriod,
+                scoreA: gameState.scoreA,
+                scoreB: gameState.scoreB,
+                timestamp: new Date().toLocaleString(),
+            };
+            gameState.periodScores.push(currentScore);
+            renderScoreLog();
+            saveGameState(); // 保存记录
+        }
+
+        // ---------------------------------- 本地存储与实时保存 ----------------------------------
+
+        /**
+         * 实时保存元数据到 gameState 并触发 UI 渲染和持久化
+         * 用于：比赛名称、队伍名称、裁判/教练名称
+         */
+        function saveMetadata(key, value) {
+            gameState[key] = value;
+            renderUI(); // 实时更新控制台显示
+            saveGameState(); // 实时持久化
+        }
+
+        /**
+         * 实时保存球员名称到 gameState
+         */
+        function savePlayerName(team, playerId, name) {
+            const players = team === 'a' ? gameState.playersA : gameState.playersB;
+            const player = players.find(p => p.id === playerId);
+            if (player) {
+                player.name = name || getTranslation('player-placeholder');
+            }
+            renderUI(); // 实时更新控制台显示
+            saveGameState(); // 实时持久化
+        }
+
+        /**
+         * 保存游戏设置和记录到 localStorage
+         * **重要：Admin 页面需要保存所有状态，包括实时状态**
+         */
+        function saveGameState() {
+            const dataToSave = {
+                // 实时保存的元数据
+                gameName: gameState.gameName,
+                teamA: gameState.teamA,
+                teamB: gameState.teamB,
+                refereeMain: gameState.refereeMain,
+                refereeVice: gameState.refereeVice,
+                coachA: gameState.coachA,
+                coachB: gameState.coachB,
+                
+                // 需点击应用的参数
+                periodDuration: gameState.periodDuration,
+                totalPeriods: gameState.totalPeriods,
+                shotClockInitial: gameState.shotClockInitial,
+                
+                // 球员名称、得分和犯规
+                playersA: gameState.playersA.map(p => ({ id: p.id, name: p.name, score: p.score, fouls: p.fouls })), 
+                playersB: gameState.playersB.map(p => ({ id: p.id, name: p.name, score: p.score, fouls: p.fouls })),
+                
+                // 实时比赛状态
+                currentPeriod: gameState.currentPeriod,
+                scoreA: gameState.scoreA,
+                scoreB: gameState.scoreB,
+                foulsA: gameState.foulsA,
+                foulsB: gameState.foulsB,
+                timeoutsA: gameState.timeoutsA,
+                timeoutsB: gameState.timeoutsB,
+                timer: gameState.timer,
+                shotClock: gameState.shotClock,
+                isTimerRunning: gameState.isTimerRunning,
+
+                // 记录
+                periodScores: gameState.periodScores,
+            };
+            localStorage.setItem('basketballScoreboardState', JSON.stringify(dataToSave));
+        }
+
+        /**
+         * 从 localStorage 加载游戏状态
+         */
+        function loadGameState() {
+            const savedState = localStorage.getItem('basketballScoreboardState');
+            if (savedState) {
+                const loadedData = JSON.parse(savedState);
+                
+                // 加载元数据 (实时保存)
+                gameState.gameName = loadedData.gameName || gameState.gameName;
+                gameState.teamA = loadedData.teamA || gameState.teamA;
+                gameState.teamB = loadedData.teamB || gameState.teamB;
+                gameState.refereeMain = loadedData.refereeMain || gameState.refereeMain;
+                gameState.refereeVice = loadedData.refereeVice || gameState.refereeVice;
+                gameState.coachA = loadedData.coachA || gameState.coachA;
+                gameState.coachB = loadedData.coachB || gameState.coachB;
+
+                // 加载参数 (需应用)
+                gameState.periodDuration = loadedData.periodDuration || gameState.periodDuration;
+                gameState.totalPeriods = loadedData.totalPeriods || gameState.totalPeriods;
+                gameState.shotClockInitial = loadedData.shotClockInitial || gameState.shotClockInitial;
+                
+                // 加载球员名称、得分和犯规
+                if (loadedData.playersA) gameState.playersA.forEach((p, i) => { 
+                    if(loadedData.playersA[i]) { 
+                        p.name = loadedData.playersA[i].name;
+                        p.score = loadedData.playersA[i].score || 0;
+                        p.fouls = loadedData.playersA[i].fouls || 0;
+                    }
+                });
+                if (loadedData.playersB) gameState.playersB.forEach((p, i) => { 
+                    if(loadedData.playersB[i]) { 
+                        p.name = loadedData.playersB[i].name;
+                        p.score = loadedData.playersB[i].score || 0;
+                        p.fouls = loadedData.playersB[i].fouls || 0;
+                    }
+                });
+
+                // 加载实时比赛状态
+                gameState.currentPeriod = loadedData.currentPeriod || gameState.currentPeriod;
+                gameState.scoreA = loadedData.scoreA || gameState.scoreA;
+                gameState.scoreB = loadedData.scoreB || gameState.scoreB;
+                gameState.foulsA = loadedData.foulsA || gameState.foulsA;
+                gameState.foulsB = loadedData.foulsB || gameState.foulsB;
+                gameState.timeoutsA = loadedData.timeoutsA || gameState.timeoutsA;
+                gameState.timeoutsB = loadedData.timeoutsB || gameState.timeoutsB;
+                
+                // 计时器状态
+                // 停止可能正在运行的计时器，并从存储加载时间
+                clearInterval(gameState.timerInterval);
+                clearInterval(gameState.shotClockInterval);
+                gameState.isTimerRunning = loadedData.isTimerRunning || false;
+                gameState.timer = loadedData.timer || gameState.periodDuration;
+                gameState.shotClock = loadedData.shotClock || gameState.shotClockInitial;
+
+                if(gameState.isTimerRunning) {
+                    // 如果加载时计时器正在运行，则需要重新启动它
+                    startTimer(); 
+                }
+
+                // 加载记录
+                gameState.periodScores = loadedData.periodScores || gameState.periodScores;
+            } else {
+                // 如果没有存储数据，则重置游戏状态以应用默认参数
+                resetGameStatus(); 
+            }
+        }
+        
+        /**
+         * 渲染比分记录到文本框
+         */
+        function renderScoreLog() {
+            let logText = `${getTranslation('app-title')}\n`;
+            logText += `---------------------------------------------------\n`;
+            logText += `${getTranslation('label-game-name')}: ${gameState.gameName}\n`;
+            logText += `${getTranslation('label-team-a-name')}: ${gameState.teamA} | ${getTranslation('label-team-b-name')}: ${gameState.teamB}\n`;
+            logText += `---------------------------------------------------\n\n`;
+
+            // 计算总比分
+            let totalA = 0;
+            let totalB = 0;
+
+            gameState.periodScores.forEach(p => {
+                logText += `${getTranslation('period-label')}${p.period}${getTranslation('period-unit')} (${p.timestamp}): \n`;
+                logText += `  ${gameState.teamA}: ${p.scoreA}\n`;
+                logText += `  ${gameState.teamB}: ${p.scoreB}\n`;
+                logText += `--------------------\n`;
+                totalA = p.scoreA;
+                totalB = p.scoreB;
+            });
+            
+            logText += `\n${getTranslation('msg-game-end', totalA, totalB)}\n`;
+
+            document.getElementById('score-log-output').value = logText;
+        }
+
+        /**
+         * 导出比分记录到本地文件
+         */
+        function exportScoreLog() {
+            const logText = document.getElementById('score-log-output').value;
+            const blob = new Blob([logText], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${gameState.gameName.replace(/\s/g, '_')}_Score_Log_${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        /**
+         * 清除得分记录
+         */
+        function clearScoreLog() {
+            showConfirmModal('msg-log-cleared', () => {
+                gameState.periodScores = [];
+                renderScoreLog();
+                saveGameState();
+                showModal('msg-log-cleared');
+            });
+        }
+        
+        /**
+         * 重置比赛状态 (不影响设置和记录)
+         */
+        function resetGameStatus() {
+            gameState.currentPeriod = 1;
+            gameState.scoreA = 0;
+            gameState.scoreB = 0;
+            gameState.foulsA = 0;
+            gameState.foulsB = 0;
+            gameState.timeoutsA = 0;
+            gameState.timeoutsB = 0;
+            gameState.timer = gameState.periodDuration;
+            gameState.shotClock = gameState.shotClockInitial;
+
+            // 重置球员个人得分/犯规
+            gameState.playersA.forEach(p => { p.score = 0; p.fouls = 0; });
+            gameState.playersB.forEach(p => { p.score = 0; p.fouls = 0; });
+
+            clearInterval(gameState.timerInterval);
+            clearInterval(gameState.shotClockInterval);
+            gameState.isTimerRunning = false;
+
+            updateTimerButton();
+            renderUI();
+            saveGameState(); // 状态改变，保存
+        }
+
+        /**
+         * 一键重置所有比赛信息 (包括设置、状态和记录)
+         */
+        function resetAll() {
+            showConfirmModal('msg-reset-confirm', () => {
+                // 重置所有持久化数据到默认值
+                gameState = {
+                    gameName: "2016篮球比赛计时计分系统",
+                    teamA: "NBA",
+                    teamB: "CBA",
+                    refereeMain: "王伟",
+                    refereeVice: "李强",
+                    coachA: "张指导",
+                    coachB: "刘教练",
+                    periodDuration: 300,
+                    totalPeriods: 4,
+                    shotClockInitial: 24,
+                    currentPeriod: 1,
+                    timer: 300,
+                    shotClock: 24,
+                    isTimerRunning: false,
+                    timerInterval: null,
+                    shotClockInterval: null,
+                    scoreA: 0,
+                    scoreB: 0,
+                    foulsA: 0,
+                    foulsB: 0,
+                    timeoutsA: 0,
+                    timeoutsB: 0,
+                    playersA: Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `队员 ${i + 1}`, score: 0, fouls: 0 })),
+                    playersB: Array.from({ length: 12 }, (_, i) => ({ id: i + 1, name: `队员 ${i + 1}`, score: 0, fouls: 0 })),
+                    periodScores: [],
+                };
+                localStorage.removeItem('basketballScoreboardState');
+                renderUI();
+                showModal('msg-settings-applied'); 
+            });
+        }
+        
+        /**
+         * 应用比赛参数设置 (不实时保存的字段)
+         */
+        function applySettings() {
+            const newDuration = parseInt(document.getElementById('period-duration-input').value);
+            const newPeriods = parseInt(document.getElementById('total-periods-input').value);
+            const newShotClock = parseInt(document.getElementById('shot-clock-input').value);
+            
+            // 确保值合法
+            gameState.periodDuration = (newDuration > 0 && newDuration <= 3600) ? newDuration : 300;
+            gameState.totalPeriods = (newPeriods > 0 && newPeriods <= 10) ? newPeriods : 4;
+            gameState.shotClockInitial = (newShotClock > 0 && newShotClock <= 60) ? newShotClock : 24;
+            
+            // 应用设置并重置当前比赛状态
+            resetGameStatus(); 
+            showModal('msg-settings-applied');
+        }
+
+        /**
+         * 球员得分/犯规模态框 (用于精确控制)
+         */
+        function showPlayerScoreModal(team, playerId) {
+            const players = team === 'a' ? gameState.playersA : gameState.playersB;
+            const player = players.find(p => p.id === playerId);
+            if (!player) return;
+
+            const playerName = player.name;
+            const modal = document.getElementById('app-modal');
+            const teamName = team === 'a' ? gameState.teamA : gameState.teamB;
+
+            const modalContent = `
+                <h2>${teamName} - ${playerName}</h2>
+                <p>当前得分: <span id="modal-player-score-val">${player.score}</span> | 当前犯规: <span id="modal-player-foul-val">${player.fouls}</span></p>
+                
+                <div style="display: flex; justify-content: space-around; margin-top: 10px;">
+                    <div style="flex: 1; margin-right: 10px; border-right: 1px solid var(--color-border);">
+                        <h4>得分控制</h4>
+                        <button class="btn primary" onclick="updatePlayerStat('${team}', ${playerId}, 'score', 1); updateScore('${team}', 1);">+1</button>
+                        <button class="btn primary" onclick="updatePlayerStat('${team}', ${playerId}, 'score', 2); updateScore('${team}', 2);">+2</button>
+                        <button class="btn primary" onclick="updatePlayerStat('${team}', ${playerId}, 'score', 3); updateScore('${team}', 3);">+3</button>
+                        <button class="btn" onclick="updatePlayerStat('${team}', ${playerId}, 'score', -1); updateScore('${team}', -1);">-1</button>
+                    </div>
+                    <div style="flex: 1;">
+                        <h4>犯规控制</h4>
+                        <button class="btn" onclick="updatePlayerStat('${team}', ${playerId}, 'foul', 1); updateFoul('${team}', 1);">+1</button>
+                        <button class="btn" onclick="updatePlayerStat('${team}', ${playerId}, 'foul', -1); updateFoul('${team}', -1);">-1</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('modal-message').innerHTML = modalContent;
+            document.getElementById('modal-actions').innerHTML = `<button class="btn primary" onclick="document.getElementById('app-modal').style.display='none'">关闭</button>`;
+            modal.style.display = 'block';
+        }
+        
+        /**
+         * 更新单个球员的得分或犯规
+         */
+        function updatePlayerStat(team, playerId, stat, delta) {
+            const players = team === 'a' ? gameState.playersA : gameState.playersB;
+            const player = players.find(p => p.id === playerId);
+            if (!player) return;
+
+            if (stat === 'score') {
+                player.score = Math.max(0, player.score + delta);
+                const scoreEl = document.getElementById('modal-player-score-val');
+                if (scoreEl) scoreEl.textContent = player.score;
+            } else if (stat === 'foul') {
+                player.fouls = Math.max(0, player.fouls + delta);
+                const foulEl = document.getElementById('modal-player-foul-val');
+                if (foulEl) foulEl.textContent = player.fouls;
+            }
+            saveGameState(); // 状态改变，保存
+        }
+
+
+        // ---------------------------------- 启动 ----------------------------------
+        
+        window.onload = function() {
+            // 1. 加载持久化数据
+            loadGameState();
+            
+            // 2. 绑定事件监听器
+            // 移除 view-toggle 按钮的事件
+            document.getElementById('lang-toggle').addEventListener('click', toggleLanguage);
+            document.getElementById('timer-start-btn').addEventListener('click', startTimer);
+            document.getElementById('timer-reset-btn').addEventListener('click', resetTimer);
+            document.getElementById('shot-clock-reset-btn').addEventListener('click', resetShotClock);
+            document.getElementById('next-period-btn').addEventListener('click', nextPeriod);
+            document.getElementById('apply-settings-btn').addEventListener('click', applySettings);
+            document.getElementById('export-log-btn').addEventListener('click', exportScoreLog);
+            document.getElementById('clear-log-btn').addEventListener('click', clearScoreLog);
+            document.getElementById('reset-all-btn').addEventListener('click', resetAll);
+
+            // 3. 初始化UI
+            updateTimerButton(); // 确保初始计时按钮显示正确
+            renderUI();
+            
+            // 4. 启动实时时钟
+            setInterval(updateRealTimeClock, 1000);
+            updateRealTimeClock();
+        };
+
+    </script>
+</body>
+</html>
